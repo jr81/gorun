@@ -55,8 +55,7 @@ func main() {
 // Run compiles and links the Go source file on args[0] and
 // runs it with arguments args[1:].
 func Run(args []string) error {
-	sourcefile := args[0]
-	rundir, runfile, err := RunFile(sourcefile)
+	sourcefile, rundir, runfile, err := RunFile(args[0])
 	if err != nil {
 		return err
 	}
@@ -158,25 +157,25 @@ func Exec(args []string) error {
 // RunFile returns the directory and file location where the binary generated
 // for sourcefile should be put.  In case the directory does not yet exist, it
 // will be created by RunDir.
-func RunFile(sourcefile string) (rundir, runfile string, err error) {
+func RunFile(sourcefile string) (sourcefileAbs, rundir, runfile string, err error) {
 	rundir, err = RunDir()
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
-	sourcefile, err = filepath.Abs(sourcefile)
+	sourcefileAbs, err = filepath.Abs(sourcefile)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
-	sourcefile, err = filepath.EvalSymlinks(sourcefile)
+	sourcefileAbs, err = filepath.EvalSymlinks(sourcefileAbs)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
-	runfile = strings.Replace(sourcefile, "%", "%%", -1)
+	runfile = strings.Replace(sourcefileAbs, "%", "%%", -1)
 	runfile = strings.Replace(runfile, string(filepath.Separator), "ROOT%", 1)
 	runfile = strings.Replace(runfile, string(filepath.Separator), "%", -1)
 	runfile = filepath.Join(rundir, runfile)
 	runfile += ".gorun"
-	return rundir, runfile, nil
+	return
 }
 
 func sysStat(stat os.FileInfo) *syscall.Stat_t {
